@@ -1,6 +1,6 @@
 # Logistics Smart Contracts
 
-Smart contract development environment for deploying contracts to private Ethereum networks.
+Smart contract development environment for deploying contracts to private EVM networks.
 
 ## Overview
 
