@@ -1,0 +1,54 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build artifacts
+artifacts/
+cache/
+dist/
+build/
+*.tsbuildinfo
+
+# Blockchain runtime data
+besu-chain/local/data/
+besu-chain/local/*.log
+besu-chain/cloud/data/
+**/besu-data/
+*.log
+
+# Deployment artifacts
+deployment-info*.json
+smart-contracts/deployments/*/solcInputs/
+
+# Environment and secrets
+.env
+.env.local
+.env.production
+
+# Private keys (NEVER commit!)
+**/keys/**/*.key
+**/keystore/
+**/*-private-key*
+
+# IDE and project-specific
+.vscode/
+.idea/
+.claude/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+.AppleDouble
+.LSOverride
+
+# Testing
+coverage/
+.nyc_output/
+
+# Temporary files
+*.tmp
+temp/
+tmp/

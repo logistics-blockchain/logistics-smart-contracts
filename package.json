@@ -1,0 +1,37 @@
+{
+  "name": "logistics_prototype",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "test": "hardhat test",
+    "test:mocha": "mocha",
+    "deploy:besu": "npx tsx scripts/deploy-besu.ts",
+    "deploy:besu:factory": "npx tsx scripts/deploy-besu-factory.ts",
+    "chain-control": "node tools/chain-control-server.mjs"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-ignition": "^3.0.3",
+    "@nomicfoundation/hardhat-ignition-viem": "^3.0.3",
+    "@nomicfoundation/hardhat-network-helpers": "^3.0.0",
+    "@nomicfoundation/hardhat-toolbox-viem": "^5.0.0",
+    "@nomicfoundation/hardhat-viem": "^3.0.0",
+    "@openzeppelin/contracts": "^5.4.0",
+    "@openzeppelin/hardhat-upgrades": "^3.9.1",
+    "@types/chai": "^5.2.2",
+    "@types/chai-as-promised": "^8.0.2",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^22.18.8",
+    "chai": "^6.2.0",
+    "chai-as-promised": "^8.0.2",
+    "forge-std": "github:foundry-rs/forge-std#v1.9.4",
+    "glob": "^11.0.3",
+    "hardhat": "^3.0.6",
+    "mocha": "^11.7.4",
+    "tsx": "^4.20.6",
+    "typescript": "~5.8.0",
+    "viem": "^2.37.12"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts-upgradeable": "^5.4.0"
+  }
+}
