@@ -29,8 +29,12 @@ const besuLocal = defineChain({
   },
 });
 
-// Besu validator private key (node 0)
-const BESU_VALIDATOR_KEY = '0xd741ebce6318dc6e7a9b9358d7926feb85501a0ad68a395efa836f56fb83b67d';
+// Load private key from environment variable
+const BESU_VALIDATOR_KEY = process.env.DEPLOYER_PRIVATE_KEY;
+
+if (!BESU_VALIDATOR_KEY) {
+  throw new Error('DEPLOYER_PRIVATE_KEY environment variable is required');
+}
 
 async function main() {
   console.log('\nStarting Besu deployment...\n');
@@ -182,6 +186,7 @@ async function main() {
   };
 
   const deploymentPath = path.join(process.cwd(), 'deployments', 'deployment-besu.json');
+  fs.mkdirSync(path.dirname(deploymentPath), { recursive: true });
   fs.writeFileSync(deploymentPath, JSON.stringify(deploymentInfo, null, 2));
 
   console.log(`Deployment info saved to: deployments/deployment-besu.json\n`);

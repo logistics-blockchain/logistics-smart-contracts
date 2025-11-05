@@ -17,7 +17,7 @@ const HARDHAT_ACCOUNTS = [
 ];
 
 async function main() {
-  console.log('\n🚀 Starting deployment...\n');
+  console.log('\nStarting deployment...\n');
 
   // Setup Viem clients
   const publicClient = createPublicClient({
@@ -32,12 +32,12 @@ async function main() {
     transport: http('http://127.0.0.1:8545'),
   });
 
-  console.log(`📋 Deployer address: ${ownerAccount.address}\n`);
+  console.log(`Deployer address: ${ownerAccount.address}\n`);
 
   // ====================================
   // Phase 1: Deploy ManufacturerRegistry
   // ====================================
-  console.log('📦 Phase 1: Deploying ManufacturerRegistry...');
+  console.log('Phase 1: Deploying ManufacturerRegistry...');
 
   const registryHash = await owner.deployContract({
     abi: ManufacturerRegistryArtifact.abi,
@@ -51,12 +51,12 @@ async function main() {
     throw new Error('ManufacturerRegistry deployment failed - no contract address');
   }
 
-  console.log(`✅ ManufacturerRegistry deployed at: ${registryAddress}\n`);
+  console.log(`ManufacturerRegistry deployed at: ${registryAddress}\n`);
 
   // ====================================
   // Phase 2: Deploy LogisticsOrder V1 Implementation
   // ====================================
-  console.log('📦 Phase 2: Deploying LogisticsOrder V1 implementation...');
+  console.log('Phase 2: Deploying LogisticsOrder V1 implementation...');
 
   const implV1Hash = await owner.deployContract({
     abi: LogisticsOrderArtifact.abi,
@@ -70,12 +70,12 @@ async function main() {
     throw new Error('LogisticsOrder V1 implementation deployment failed');
   }
 
-  console.log(`✅ LogisticsOrder V1 implementation deployed at: ${implementationV1Address}\n`);
+  console.log(`LogisticsOrder V1 implementation deployed at: ${implementationV1Address}\n`);
 
   // ====================================
   // Phase 2.1: Deploy LogisticsOrder V2 Implementation
   // ====================================
-  console.log('📦 Phase 2.1: Deploying LogisticsOrder V2 implementation...');
+  console.log('Phase 2.1: Deploying LogisticsOrder V2 implementation...');
 
   const implV2Hash = await owner.deployContract({
     abi: LogisticsOrderV2Artifact.abi,
@@ -89,12 +89,12 @@ async function main() {
     throw new Error('LogisticsOrder V2 implementation deployment failed');
   }
 
-  console.log(`✅ LogisticsOrder V2 implementation deployed at: ${implementationV2Address}\n`);
+  console.log(`LogisticsOrder V2 implementation deployed at: ${implementationV2Address}\n`);
 
   // ====================================
   // Phase 3: Encode Initialize Call Data
   // ====================================
-  console.log('🔧 Phase 3: Encoding initialize call data...');
+  console.log('Phase 3: Encoding initialize call data...');
 
   const initializeData = encodeFunctionData({
     abi: LogisticsOrderArtifact.abi, // Initialize with V1 ABI
@@ -102,12 +102,12 @@ async function main() {
     args: [registryAddress, ownerAccount.address]
   });
 
-  console.log(`✅ Initialize data encoded\n`);
+  console.log(`Initialize data encoded\n`);
 
   // ====================================
   // Phase 4: Deploy Proxy with Initialization
   // ====================================
-  console.log('📦 Phase 4: Deploying ERC1967Proxy...');
+  console.log('Phase 4: Deploying ERC1967Proxy...');
 
   const proxyHash = await owner.deployContract({
     abi: LogisticsOrderProxyArtifact.abi,
@@ -122,12 +122,12 @@ async function main() {
     throw new Error('Proxy deployment failed');
   }
 
-  console.log(`✅ LogisticsOrderProxy deployed at: ${proxyAddress}\n`);
+  console.log(`LogisticsOrderProxy deployed at: ${proxyAddress}\n`);
 
   // ====================================
   // Phase 5: Verify Initialization
   // ====================================
-  console.log('🔍 Phase 5: Verifying initialization...');
+  console.log('Phase 5: Verifying initialization...');
 
   const ordersContract = getContract({
     address: proxyAddress,
@@ -142,7 +142,7 @@ async function main() {
   console.log(`   Version: ${version}`);
   console.log(`   Registry reference: ${registryRef}`);
   console.log(`   Contract owner: ${contractOwner}`);
-  console.log(`✅ Initialization verified\n`);
+  console.log(`Initialization verified\n`);
 
   // Verify correct references
   if (registryRef.toLowerCase() !== registryAddress.toLowerCase()) {
@@ -155,7 +155,7 @@ async function main() {
   // ====================================
   // Phase 6: Save Deployment Info
   // ====================================
-  console.log('💾 Phase 6: Saving deployment info...');
+  console.log('Phase 6: Saving deployment info...');
 
   const deploymentInfo = {
     network: 'hardhat',
@@ -171,29 +171,30 @@ async function main() {
     timestamp: new Date().toISOString()
   };
 
-  const deploymentPath = path.join(process.cwd(), 'deployment-info.json');
+  const deploymentPath = path.join(process.cwd(), 'deployments', 'deployment-hardhat.json');
+  fs.mkdirSync(path.dirname(deploymentPath), { recursive: true });
   fs.writeFileSync(deploymentPath, JSON.stringify(deploymentInfo, null, 2));
 
-  console.log(`✅ Deployment info saved to: deployment-info.json\n`);
+  console.log(`Deployment info saved to: deployments/deployment-hardhat.json\n`);
 
   // ====================================
   // Summary
   // ====================================
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log('🎉 DEPLOYMENT SUCCESSFUL!');
+  console.log('DEPLOYMENT SUCCESSFUL!');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log('\n📋 Deployed Contracts:');
+  console.log('\nDeployed Contracts:');
   console.log(`   ManufacturerRegistry: ${registryAddress}`);
   console.log(`   LogisticsOrder (impl V1): ${implementationV1Address}`);
   console.log(`   LogisticsOrder (impl V2): ${implementationV2Address}`);
   console.log(`   LogisticsOrderProxy:      ${proxyAddress}`);
-  console.log('\n⚠️  IMPORTANT: Always interact with the PROXY address!');
+  console.log('\nIMPORTANT: Always interact with the PROXY address!');
   console.log(`   Use this address: ${proxyAddress}\n`);
 }
 
 main()
   .then(() => process.exit(0))
   .catch((error) => {
-    console.error('\n❌ Deployment failed:', error);
+    console.error('\nDeployment failed:', error);
     process.exit(1);
   });

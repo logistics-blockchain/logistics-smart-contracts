@@ -39,32 +39,81 @@ npm test
 
 ## Deploying to Besu Network
 
-### 1. Configure Network
+### 1. Configure Environment
 
-Add your Besu network configuration to `hardhat.config.ts`:
-
-```typescript
-networks: {
-  besu: {
-    url: "http://127.0.0.1:8545",
-    chainId: 10001,  // Match your genesis.json
-    gasPrice: 0,     // Zero gas configuration
-    accounts: ["0xYourPrivateKey"]
-  }
-}
-```
-
-### 2. Deploy Contracts
+Copy `.env.example` to `.env` and configure:
 
 ```bash
-# Deploy to local Hardhat network (for testing)
-npx tsx scripts/deploy.ts
-
-# Deploy to Besu network
-npx tsx scripts/deploy-besu.ts
+cp .env.example .env
 ```
 
-Deployment addresses will be saved to `deployment-info.json`.
+Edit `.env` with your deployment settings:
+
+```bash
+# Required for Besu deployments
+DEPLOYER_PRIVATE_KEY=0xYourPrivateKeyHere
+
+# Optional: Cloud Besu RPC endpoint
+BESU_CLOUD_RPC=http://your-cloud-ip:8545
+```
+
+Network configurations are already defined in `hardhat.config.ts`:
+- `hardhat` - Local Hardhat network (chainId 31337)
+- `besuLocal` - Local Besu network at localhost:8545 (chainId 10001)
+- `besuCloud` - Cloud Besu network using BESU_CLOUD_RPC (chainId 10001)
+
+### 2. Choose Deployment Script
+
+The repository includes several deployment scripts for different use cases:
+
+#### deploy.ts - Hardhat Network Testing
+```bash
+npx tsx scripts/deploy.ts
+```
+- Deploys to local Hardhat network
+- Uses default Hardhat test accounts
+- Includes V1 and V2 implementations for testing upgrades
+- Best for: Local development and testing
+- Output: `deployments/deployment-hardhat.json`
+
+#### deploy-besu.ts - Direct Proxy Pattern
+```bash
+npx tsx scripts/deploy-besu.ts
+```
+- Deploys to Besu local network
+- Creates a single UUPS proxy with shared implementation
+- Includes V1 and V2 implementations for upgrades
+- Best for: Single-tenant deployments
+- Output: `deployments/deployment-besu.json`
+
+#### deploy-besu-factory.ts - Factory Pattern
+```bash
+npx tsx scripts/deploy-besu-factory.ts
+```
+- Deploys to Besu local network
+- Creates factory contract for multi-manufacturer setup
+- Each manufacturer gets their own proxy instance
+- Best for: Multi-tenant systems
+- Output: `deployments/deployment-besu-factory.json`
+
+#### deploy-cloud.ts - Cloud Deployment
+```bash
+npx tsx scripts/deploy-cloud.ts
+```
+- Deploys to cloud Besu network
+- Uses BESU_CLOUD_RPC environment variable
+- Similar to deploy-besu.ts but for remote networks
+- Best for: Production cloud deployments
+- Output: `deployments/deployment-cloud.json`
+
+### 3. Deploy Contracts
+
+```bash
+# Example: Deploy factory pattern to local Besu
+npx tsx scripts/deploy-besu-factory.ts
+```
+
+Deployment addresses are automatically saved to the `deployments/` directory.
 
 ## Developing New Contracts
 
@@ -204,14 +253,16 @@ await contract.write.functionName([args], {
 
 ### Private Keys
 
-Never commit private keys to version control. Use environment variables:
+All deployment scripts now use environment variables for private keys:
 
-```typescript
-import * as dotenv from 'dotenv';
-dotenv.config();
+1. Copy `.env.example` to `.env`
+2. Add your private key to `.env`:
+   ```bash
+   DEPLOYER_PRIVATE_KEY=0xYourPrivateKeyHere
+   ```
+3. The `.env` file is already in `.gitignore` and will never be committed
 
-const accounts = process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [];
-```
+Deployment scripts will fail with a clear error if `DEPLOYER_PRIVATE_KEY` is not set (except deploy.ts which uses Hardhat's default accounts).
 
 ### Upgradeable Contracts
 

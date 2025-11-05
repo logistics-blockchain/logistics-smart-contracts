@@ -28,11 +28,15 @@ const besuLocal = defineChain({
   },
 });
 
-// Besu validator private key (node 0)
-const BESU_VALIDATOR_KEY = '0xd741ebce6318dc6e7a9b9358d7926feb85501a0ad68a395efa836f56fb83b67d';
+// Load private key from environment variable
+const BESU_VALIDATOR_KEY = process.env.DEPLOYER_PRIVATE_KEY;
+
+if (!BESU_VALIDATOR_KEY) {
+  throw new Error('DEPLOYER_PRIVATE_KEY environment variable is required');
+}
 
 async function main() {
-  console.log('\n🚀 Starting Factory Pattern deployment to Besu...\n');
+  console.log('\nStarting Factory Pattern deployment to Besu...\n');
 
   // Setup Viem clients
   const publicClient = createPublicClient({
@@ -47,16 +51,16 @@ async function main() {
     transport: http('http://127.0.0.1:8545'),
   });
 
-  console.log(`📋 Deployer address: ${ownerAccount.address}`);
+  console.log(`Deployer address: ${ownerAccount.address}`);
 
   // Check balance
   const balance = await publicClient.getBalance({ address: ownerAccount.address });
-  console.log(`💰 Balance: ${balance} wei\n`);
+  console.log(`Balance: ${balance} wei (zero gas network)\n`);
 
   // ====================================
   // Phase 1: Deploy ManufacturerRegistry
   // ====================================
-  console.log('📦 Phase 1: Deploying ManufacturerRegistry...');
+  console.log('Phase 1: Deploying ManufacturerRegistry...');
 
   const registryHash = await owner.deployContract({
     abi: ManufacturerRegistryArtifact.abi,
@@ -71,12 +75,12 @@ async function main() {
     throw new Error('ManufacturerRegistry deployment failed - no contract address');
   }
 
-  console.log(`✅ ManufacturerRegistry deployed at: ${registryAddress}\n`);
+  console.log(`ManufacturerRegistry deployed at: ${registryAddress}\n`);
 
   // ====================================
   // Phase 2: Deploy LogisticsOrder Implementation
   // ====================================
-  console.log('📦 Phase 2: Deploying LogisticsOrder implementation (shared logic)...');
+  console.log('Phase 2: Deploying LogisticsOrder implementation (shared logic)...');
 
   const implHash = await owner.deployContract({
     abi: LogisticsOrderArtifact.abi,
@@ -91,12 +95,12 @@ async function main() {
     throw new Error('LogisticsOrder implementation deployment failed');
   }
 
-  console.log(`✅ LogisticsOrder implementation deployed at: ${implementationAddress}\n`);
+  console.log(`LogisticsOrder implementation deployed at: ${implementationAddress}\n`);
 
   // ====================================
   // Phase 3: Deploy LogisticsOrderFactory
   // ====================================
-  console.log('📦 Phase 3: Deploying LogisticsOrderFactory...');
+  console.log('Phase 3: Deploying LogisticsOrderFactory...');
 
   const factoryHash = await owner.deployContract({
     abi: LogisticsOrderFactoryArtifact.abi,
@@ -112,12 +116,12 @@ async function main() {
     throw new Error('Factory deployment failed');
   }
 
-  console.log(`✅ LogisticsOrderFactory deployed at: ${factoryAddress}\n`);
+  console.log(`LogisticsOrderFactory deployed at: ${factoryAddress}\n`);
 
   // ====================================
   // Phase 4: Verify Factory Setup
   // ====================================
-  console.log('🔍 Phase 4: Verifying factory setup...');
+  console.log('Phase 4: Verifying factory setup...');
 
   const factory = getContract({
     address: factoryAddress,
@@ -130,7 +134,7 @@ async function main() {
 
   console.log(`   Implementation: ${factoryImpl}`);
   console.log(`   Registry: ${factoryRegistry}`);
-  console.log(`✅ Factory setup verified\n`);
+  console.log(`Factory setup verified\n`);
 
   // Verify correct references
   if (factoryImpl.toLowerCase() !== implementationAddress.toLowerCase()) {
@@ -143,7 +147,7 @@ async function main() {
   // ====================================
   // Phase 5: Save Deployment Info
   // ====================================
-  console.log('💾 Phase 5: Saving deployment info...');
+  console.log('Phase 5: Saving deployment info...');
 
   const deploymentInfo = {
     network: 'besu-local',
@@ -164,32 +168,33 @@ async function main() {
   };
 
   const deploymentPath = path.join(process.cwd(), 'deployments', 'deployment-besu-factory.json');
+  fs.mkdirSync(path.dirname(deploymentPath), { recursive: true });
   fs.writeFileSync(deploymentPath, JSON.stringify(deploymentInfo, null, 2));
 
-  console.log(`✅ Deployment info saved to: deployments/deployment-besu-factory.json\n`);
+  console.log(`Deployment info saved to: deployments/deployment-besu-factory.json\n`);
 
   // ====================================
   // Summary
   // ====================================
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log('🎉 FACTORY DEPLOYMENT SUCCESSFUL!');
+  console.log('FACTORY DEPLOYMENT SUCCESSFUL!');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log('\n📋 Deployed Contracts:');
+  console.log('\nDeployed Contracts:');
   console.log(`   ManufacturerRegistry: ${registryAddress}`);
   console.log(`   LogisticsOrder (impl): ${implementationAddress}`);
   console.log(`   LogisticsOrderFactory: ${factoryAddress}`);
-  console.log('\n📝 Usage Instructions:');
+  console.log('\nUsage Instructions:');
   console.log('   1. Register manufacturers via ManufacturerRegistry');
   console.log('   2. Manufacturers call createLogisticsOrder() on factory');
   console.log('   3. Factory deploys individual proxy for each manufacturer');
   console.log('   4. Manufacturers interact with their own proxy address');
-  console.log('\n⚠️  Factory creates NEW proxies - each manufacturer gets their own!');
-  console.log('💰 All transactions are FREE (0 gas price on Besu)\n');
+  console.log('\nFactory creates NEW proxies - each manufacturer gets their own!');
+  console.log('All transactions are FREE (0 gas price on Besu)\n');
 }
 
 main()
   .then(() => process.exit(0))
   .catch((error) => {
-    console.error('\n❌ Deployment failed:', error);
+    console.error('\nDeployment failed:', error);
     process.exit(1);
   });

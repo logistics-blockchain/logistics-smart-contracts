@@ -8,6 +8,9 @@ import ManufacturerRegistryArtifact from '../artifacts/contracts/ManufacturerReg
 import LogisticsOrderArtifact from '../artifacts/contracts/LogisticsOrder.sol/LogisticsOrder.json' assert { type: 'json' };
 import LogisticsOrderProxyArtifact from '../artifacts/contracts/LogisticsOrderProxy.sol/LogisticsOrderProxy.json' assert { type: 'json' };
 
+// Load RPC URL from environment variable or use default
+const CLOUD_RPC_URL = process.env.BESU_CLOUD_RPC || 'http://127.0.0.1:8545';
+
 // Define cloud Besu chain
 const cloudBesu = defineChain({
   id: 10001,
@@ -19,47 +22,51 @@ const cloudBesu = defineChain({
   },
   rpcUrls: {
     default: {
-      http: ['http://92.5.56.222:8545'],
+      http: [CLOUD_RPC_URL],
     },
     public: {
-      http: ['http://92.5.56.222:8545'],
+      http: [CLOUD_RPC_URL],
     },
   },
 });
 
-// Standard Ethereum test account (funded in genesis)
-const DEPLOYER_PRIVATE_KEY = '0x8f2a55949038a9610f50fb23b5883af3b4ecb3c3bb792cbcefbd1542c692be63';
+// Load private key from environment variable
+const DEPLOYER_PRIVATE_KEY = process.env.DEPLOYER_PRIVATE_KEY;
+
+if (!DEPLOYER_PRIVATE_KEY) {
+  throw new Error('DEPLOYER_PRIVATE_KEY environment variable is required');
+}
 
 async function main() {
-  console.log('\n🚀 Starting cloud deployment...\n');
+  console.log('\nStarting cloud deployment...\n');
 
   // Setup Viem clients for cloud network
   const publicClient = createPublicClient({
     chain: cloudBesu,
-    transport: http('http://92.5.56.222:8545'),
+    transport: http(CLOUD_RPC_URL),
   });
 
   const ownerAccount = privateKeyToAccount(DEPLOYER_PRIVATE_KEY as `0x${string}`);
   const owner = createWalletClient({
     account: ownerAccount,
     chain: cloudBesu,
-    transport: http('http://92.5.56.222:8545'),
+    transport: http(CLOUD_RPC_URL),
   });
 
-  console.log(`📋 Deployer address: ${ownerAccount.address}`);
+  console.log(`Deployer address: ${ownerAccount.address}`);
 
   // Check balance
   const balance = await publicClient.getBalance({ address: ownerAccount.address });
-  console.log(`💰 Deployer balance: ${balance.toString()} wei\n`);
+  console.log(`Deployer balance: ${balance.toString()} wei\n`);
 
   // Verify network connection
   const blockNumber = await publicClient.getBlockNumber();
-  console.log(`🔗 Connected to cloud network. Current block: ${blockNumber}\n`);
+  console.log(`Connected to cloud network. Current block: ${blockNumber}\n`);
 
   // ====================================
   // Phase 1: Deploy ManufacturerRegistry
   // ====================================
-  console.log('📦 Phase 1: Deploying ManufacturerRegistry...');
+  console.log('Phase 1: Deploying ManufacturerRegistry...');
 
   const registryHash = await owner.deployContract({
     abi: ManufacturerRegistryArtifact.abi,
@@ -75,12 +82,12 @@ async function main() {
     throw new Error('ManufacturerRegistry deployment failed - no contract address');
   }
 
-  console.log(`✅ ManufacturerRegistry deployed at: ${registryAddress}\n`);
+  console.log(`ManufacturerRegistry deployed at: ${registryAddress}\n`);
 
   // ====================================
   // Phase 2: Deploy LogisticsOrder V1 Implementation
   // ====================================
-  console.log('📦 Phase 2: Deploying LogisticsOrder V1 implementation...');
+  console.log('Phase 2: Deploying LogisticsOrder V1 implementation...');
 
   const implV1Hash = await owner.deployContract({
     abi: LogisticsOrderArtifact.abi,
@@ -96,12 +103,12 @@ async function main() {
     throw new Error('LogisticsOrder V1 implementation deployment failed');
   }
 
-  console.log(`✅ LogisticsOrder V1 implementation deployed at: ${implementationV1Address}\n`);
+  console.log(`LogisticsOrder V1 implementation deployed at: ${implementationV1Address}\n`);
 
   // ====================================
   // Phase 3: Encode Initialize Call Data
   // ====================================
-  console.log('🔧 Phase 3: Encoding initialize call data...');
+  console.log('Phase 3: Encoding initialize call data...');
 
   const initializeData = encodeFunctionData({
     abi: LogisticsOrderArtifact.abi,
@@ -109,12 +116,12 @@ async function main() {
     args: [registryAddress, ownerAccount.address]
   });
 
-  console.log(`✅ Initialize data encoded\n`);
+  console.log(`Initialize data encoded\n`);
 
   // ====================================
   // Phase 4: Deploy Proxy with Initialization
   // ====================================
-  console.log('📦 Phase 4: Deploying ERC1967Proxy...');
+  console.log('Phase 4: Deploying ERC1967Proxy...');
 
   const proxyHash = await owner.deployContract({
     abi: LogisticsOrderProxyArtifact.abi,
@@ -131,12 +138,12 @@ async function main() {
     throw new Error('Proxy deployment failed');
   }
 
-  console.log(`✅ LogisticsOrderProxy deployed at: ${proxyAddress}\n`);
+  console.log(`LogisticsOrderProxy deployed at: ${proxyAddress}\n`);
 
   // ====================================
   // Phase 5: Verify Initialization
   // ====================================
-  console.log('🔍 Phase 5: Verifying initialization...');
+  console.log('Phase 5: Verifying initialization...');
 
   const ordersContract = getContract({
     address: proxyAddress,
@@ -151,7 +158,7 @@ async function main() {
   console.log(`   Version: ${version}`);
   console.log(`   Registry reference: ${registryRef}`);
   console.log(`   Contract owner: ${contractOwner}`);
-  console.log(`✅ Initialization verified\n`);
+  console.log(`Initialization verified\n`);
 
   // Verify correct references
   if (registryRef.toLowerCase() !== registryAddress.toLowerCase()) {
@@ -164,12 +171,12 @@ async function main() {
   // ====================================
   // Phase 6: Save Deployment Info
   // ====================================
-  console.log('💾 Phase 6: Saving deployment info...');
+  console.log('Phase 6: Saving deployment info...');
 
   const deploymentInfo = {
     network: 'besu-cloud',
     chainId: cloudBesu.id,
-    rpcUrl: 'http://92.5.56.222:8545',
+    rpcUrl: CLOUD_RPC_URL,
     deployer: ownerAccount.address,
     contracts: {
       ManufacturerRegistry: registryAddress,
@@ -180,30 +187,31 @@ async function main() {
     timestamp: new Date().toISOString()
   };
 
-  const deploymentPath = path.join(process.cwd(), 'deployment-info-cloud.json');
+  const deploymentPath = path.join(process.cwd(), 'deployments', 'deployment-cloud.json');
+  fs.mkdirSync(path.dirname(deploymentPath), { recursive: true });
   fs.writeFileSync(deploymentPath, JSON.stringify(deploymentInfo, null, 2));
 
-  console.log(`✅ Deployment info saved to: deployment-info-cloud.json\n`);
+  console.log(`Deployment info saved to: deployments/deployment-cloud.json\n`);
 
   // ====================================
   // Summary
   // ====================================
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log('🎉 CLOUD DEPLOYMENT SUCCESSFUL!');
+  console.log('CLOUD DEPLOYMENT SUCCESSFUL!');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log('\n📋 Deployed Contracts:');
+  console.log('\nDeployed Contracts:');
   console.log(`   ManufacturerRegistry:     ${registryAddress}`);
   console.log(`   LogisticsOrder (impl V1): ${implementationV1Address}`);
   console.log(`   LogisticsOrderProxy:      ${proxyAddress}`);
-  console.log('\n⚠️  IMPORTANT: Always interact with the PROXY address!');
+  console.log('\nIMPORTANT: Always interact with the PROXY address!');
   console.log(`   Use this address: ${proxyAddress}`);
-  console.log(`\n🔗 Network: Besu Cloud (Chain ID: ${cloudBesu.id})`);
-  console.log(`📡 RPC: http://130.162.61.132:8545\n`);
+  console.log(`\nNetwork: Besu Cloud (Chain ID: ${cloudBesu.id})`);
+  console.log(`RPC: ${CLOUD_RPC_URL}\n`);
 }
 
 main()
   .then(() => process.exit(0))
   .catch((error) => {
-    console.error('\n❌ Cloud deployment failed:', error);
+    console.error('\nCloud deployment failed:', error);
     process.exit(1);
   });

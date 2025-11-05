@@ -18,6 +18,7 @@ besu-chain/cloud/data/
 
 # Deployment artifacts
 deployment-info*.json
+deployments/*.json
 smart-contracts/deployments/*/solcInputs/
 
 # Environment and secrets
