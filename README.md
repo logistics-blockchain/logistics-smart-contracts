@@ -123,7 +123,7 @@ Add new Solidity files to `contracts/`:
 
 ```solidity
 // contracts/MyContract.sol
-pragma solidity ^0.8.28;
+pragma solidity ^0.8.24;
 
 contract MyContract {
     uint256 public value;
