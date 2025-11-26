@@ -8,7 +8,9 @@ import ManufacturerRegistryArtifact from '../artifacts/contracts/ManufacturerReg
 import LogisticsOrderArtifact from '../artifacts/contracts/LogisticsOrder.sol/LogisticsOrder.json' assert { type: 'json' };
 import LogisticsOrderFactoryArtifact from '../artifacts/contracts/LogisticsOrderFactory.sol/LogisticsOrderFactory.json' assert { type: 'json' };
 
-// Define Besu local chain
+// Define Besu chain
+const RPC_URL = process.env.BESU_RPC_URL || 'http://127.0.0.1:8545';
+
 const besuLocal = defineChain({
   id: 10001,
   name: 'Besu Local',
@@ -20,10 +22,10 @@ const besuLocal = defineChain({
   },
   rpcUrls: {
     default: {
-      http: ['http://127.0.0.1:8545'],
+      http: [RPC_URL],
     },
     public: {
-      http: ['http://127.0.0.1:8545'],
+      http: [RPC_URL],
     },
   },
 });
@@ -41,14 +43,14 @@ async function main() {
   // Setup Viem clients
   const publicClient = createPublicClient({
     chain: besuLocal,
-    transport: http('http://127.0.0.1:8545'),
+    transport: http(RPC_URL),
   });
 
   const ownerAccount = privateKeyToAccount(BESU_VALIDATOR_KEY as `0x${string}`);
   const owner = createWalletClient({
     account: ownerAccount,
     chain: besuLocal,
-    transport: http('http://127.0.0.1:8545'),
+    transport: http(RPC_URL),
   });
 
   console.log(`Deployer address: ${ownerAccount.address}`);
@@ -65,7 +67,8 @@ async function main() {
   const registryHash = await owner.deployContract({
     abi: ManufacturerRegistryArtifact.abi,
     bytecode: ManufacturerRegistryArtifact.bytecode as `0x${string}`,
-    gasPrice: 0n, // Zero gas price
+    gas: 3000000n,
+    gasPrice: 1n,
   });
 
   const registryReceipt = await publicClient.waitForTransactionReceipt({ hash: registryHash });
@@ -85,7 +88,8 @@ async function main() {
   const implHash = await owner.deployContract({
     abi: LogisticsOrderArtifact.abi,
     bytecode: LogisticsOrderArtifact.bytecode as `0x${string}`,
-    gasPrice: 0n,
+    gas: 5000000n,
+    gasPrice: 1n,
   });
 
   const implReceipt = await publicClient.waitForTransactionReceipt({ hash: implHash });
@@ -106,7 +110,8 @@ async function main() {
     abi: LogisticsOrderFactoryArtifact.abi,
     bytecode: LogisticsOrderFactoryArtifact.bytecode as `0x${string}`,
     args: [implementationAddress, registryAddress],
-    gasPrice: 0n,
+    gas: 3000000n,
+    gasPrice: 1n,
   });
 
   const factoryReceipt = await publicClient.waitForTransactionReceipt({ hash: factoryHash });

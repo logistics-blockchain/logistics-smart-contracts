@@ -24,7 +24,7 @@ contract ManufacturerRegistry is Ownable {
     event ManufacturerDeactivated(address indexed addr);
     event ManufacturerActivated(address indexed addr);
 
-    constructor() Ownable(msg.sender) {}
+    constructor() Ownable() {}
 
     /**
      * @dev Register a new manufacturer (owner only)

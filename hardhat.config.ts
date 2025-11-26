@@ -6,25 +6,28 @@ dotenv.config();
 
 const config: HardhatUserConfig = {
   solidity: {
-    version: "0.8.28",
+    version: "0.8.24",
     settings: {
       optimizer: {
-        enabled: true,
-        runs: 200,
+        enabled: false,
       },
+      evmVersion: "berlin",
     },
   },
   networks: {
     hardhat: {
+      type: "edr-simulated",
       chainId: 31337,
     },
     besuLocal: {
+      type: "http",
       url: "http://127.0.0.1:8545",
       chainId: 10001,
       accounts: process.env.DEPLOYER_PRIVATE_KEY ? [process.env.DEPLOYER_PRIVATE_KEY] : [],
       gasPrice: 0,
     },
     besuCloud: {
+      type: "http",
       url: process.env.BESU_CLOUD_RPC || "http://127.0.0.1:8545",
       chainId: 10001,
       accounts: process.env.DEPLOYER_PRIVATE_KEY ? [process.env.DEPLOYER_PRIVATE_KEY] : [],

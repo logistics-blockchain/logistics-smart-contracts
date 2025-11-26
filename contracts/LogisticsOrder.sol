@@ -81,11 +81,16 @@ contract LogisticsOrder is
         require(_initialOwner != address(0), "Invalid owner address");
 
         __ERC721_init("LogisticsOrder", "LO");
-        __Ownable_init(_initialOwner);
+        __Ownable_init();
         __UUPSUpgradeable_init();
 
         manufacturerRegistry = ManufacturerRegistry(_manufacturerRegistry);
         _nextTokenId = 1;
+
+        // Transfer ownership to initial owner if different from msg.sender
+        if (_initialOwner != msg.sender) {
+            _transferOwnership(_initialOwner);
+        }
     }
 
     /**
@@ -202,7 +207,7 @@ contract LogisticsOrder is
      * @param tokenId Order ID to check
      * @return bool True if order exists
      */
-    function _exists(uint256 tokenId) internal view returns (bool) {
+    function _exists(uint256 tokenId) internal view override returns (bool) {
         return orders[tokenId].manufacturer != address(0);
     }
 

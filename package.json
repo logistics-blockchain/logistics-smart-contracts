@@ -15,8 +15,7 @@
     "@nomicfoundation/hardhat-network-helpers": "^3.0.0",
     "@nomicfoundation/hardhat-toolbox-viem": "^5.0.0",
     "@nomicfoundation/hardhat-viem": "^3.0.0",
-    "@openzeppelin/contracts": "^5.4.0",
-    "@openzeppelin/hardhat-upgrades": "^3.9.1",
+    "@openzeppelin/contracts": "^4.9.6",
     "@types/chai": "^5.2.2",
     "@types/chai-as-promised": "^8.0.2",
     "@types/mocha": "^10.0.10",
@@ -32,6 +31,7 @@
     "viem": "^2.37.12"
   },
   "dependencies": {
-    "@openzeppelin/contracts-upgradeable": "^5.4.0"
+    "@openzeppelin/contracts-upgradeable": "^4.9.6",
+    "dotenv": "^17.2.3"
   }
 }
