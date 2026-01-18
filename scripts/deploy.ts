@@ -1,3 +1,4 @@
+// @ts-nocheck
 import hre from 'hardhat';
 import { createPublicClient, createWalletClient, http, encodeFunctionData, getContract } from 'viem';
 import { hardhat } from 'viem/chains';

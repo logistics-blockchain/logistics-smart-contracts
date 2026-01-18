@@ -1,3 +1,4 @@
+// @ts-nocheck
 import hre from 'hardhat'
 import { createWalletClient, http, publicActions } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'

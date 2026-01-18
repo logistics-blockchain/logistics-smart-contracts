@@ -3,7 +3,6 @@ pragma solidity ^0.8.24;
 
 import "./LogisticsOrderProxy.sol";
 import "./ManufacturerRegistry.sol";
-import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
 /**
  * @title LogisticsOrderFactory

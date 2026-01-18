@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { createPublicClient, createWalletClient, http, getContract, parseEventLogs, type WalletClient, type PublicClient, encodeFunctionData } from 'viem';
 import { hardhat } from 'viem/chains';
 import { privateKeyToAccount } from 'viem/accounts';

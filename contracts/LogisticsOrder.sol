@@ -106,6 +106,11 @@ contract LogisticsOrder is
 
         uint256 tokenId = _nextTokenId++;
 
+        // Mint NFT first (before populating orders mapping)
+        // This is required because _exists() checks orders[tokenId].manufacturer
+        // and _mint() internally calls _exists() to verify token doesn't exist
+        _mint(receiver, tokenId);
+
         orders[tokenId] = Order({
             tokenId: tokenId,
             manufacturer: msg.sender,
@@ -114,9 +119,6 @@ contract LogisticsOrder is
             createdAt: block.timestamp,
             ipfsHash: ipfsHash
         });
-
-        // Mint NFT to receiver (they own the delivery rights)
-        _mint(receiver, tokenId);
 
         emit OrderCreated(tokenId, msg.sender, receiver, ipfsHash);
 

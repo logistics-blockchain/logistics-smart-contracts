@@ -9,7 +9,8 @@ import "./LogisticsOrder.sol";
  * Demonstrates safe upgrade pattern: inherits all V1 storage, adds new features
  */
 contract LogisticsOrderV2 is LogisticsOrder {
-    // New storage variable (uses gap slot)
+    // New storage variable for V2 functionality
+    // Storage is placed after LogisticsOrder's storage (including its __gap)
     mapping(uint256 => string) public trackingData;
 
     /**
@@ -55,7 +56,8 @@ contract LogisticsOrderV2 is LogisticsOrder {
     );
 
     /**
-     * @dev Storage gap reduced by 1 (from 50 to 49) to account for new trackingData mapping
+     * @dev Storage gap for V2 - reserves space for future V2 upgrades
+     * Note: This is separate from LogisticsOrder's __gap which reserves space for V1 additions
      */
     uint256[49] private __gap_v2;
 }

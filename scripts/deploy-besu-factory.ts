@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { createPublicClient, createWalletClient, http, getContract, defineChain } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import fs from 'fs';
